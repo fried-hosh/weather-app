@@ -1,23 +1,27 @@
 import CurrentWeatherCard from "./components/CurrentWeatherCard";
-import DailyForecast from "./components/DailyForecast";
 import HourlyForecast from "./components/HourlyForecast";
+import DailyForecast from "./components/DailyForecast";
 
 function App() {
   return (
+    // 全体の背景。青のグラデーション
     // min-h-screen: コンテンツが少なくても画面いっぱいに背景を伸ばす
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-400 bg-gradient-to-br">
-      <main className="flex w-full max-w-sm flex-col gap-4 p-4">
-        {/* ===== メイン画面 ===== */}
-        <CurrentWeatherCard />
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+      <main className="flex w-full flex-1 flex-col">
+        {/* ===== 上部エリア(現在の天気 + 時間予報) ===== */}
+        <div className="flex flex-col gap-6 p-4 pb-8 pt-8">
+          <CurrentWeatherCard />
 
-        {/* ===== 1時間ごとの予報 ===== */}
-        <HourlyForecast />
+          <HourlyForecast />
+        </div>
 
-        {/* ===== 7日間の予報 ===== */}
-        <DailyForecast />
+        {/* ===== 下部エリア(7日間の天気予報) ===== */}
+        <div className="mt-auto flex-1">
+          <DailyForecast />
+        </div>
       </main>
 
-      <footer className="bottom-2 text-xs text-slate-500">
+      <footer className="bottom-2 text-center text-xs text-slate-200">
         <p>
           <small>&copy; 2025 Hosh</small>
         </p>
