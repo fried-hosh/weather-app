@@ -7,10 +7,10 @@ type CurrentWeatherCardProps = {
 
 const CurrentWeatherCard = ({ cityName = "都市名", temperature = "20℃", description = "晴れ", iconUrl }: CurrentWeatherCardProps) => {
   return (
-    <section aria-labelledby="current-weather-title" className="rounded-3xl border border-white/20 bg-white/10 p-6 text-white shadow-lg backdrop-blur-md">
+    <section aria-labelledby="current-weather-title" className="rounded-3xl border border-white/20 p-6 text-white shadow-lg backdrop-blur-md bg-gradient-to-br from-blue-400 to-blue-950">
       {/* 見出し */}
       <header className="mb-4 flex items-center justify-between">
-        <h2 id="current-weather-title" className="text-4xl font-semibold drop-shadow-sm">
+        <h2 id="current-weather-title" className="text-4xl font-semibold drop-shadow-sm lg:text-3xl">
           {cityName}
         </h2>
       </header>
@@ -19,7 +19,7 @@ const CurrentWeatherCard = ({ cityName = "都市名", temperature = "20℃", des
       <div className="flex items-center gap-4">
         {iconUrl ? <img className="size-20 drop-shadow-md" src={iconUrl} alt={description || ""} /> : <div className="size-20 rounded-full bg-white/20 backdrop-blur-sm" aria-hidden />}
         <div className="min-w-0 flex-1">
-          <p className="text-6xl font-bold leading-none tracking-tight drop-shadow-sm" aria-live="polite">
+          <p className="text-6xl font-bold leading-none tracking-tight drop-shadow-sm lg:text-7xl" aria-live="polite">
             {temperature}
           </p>
           <p className="mt-1 truncate text-2xl font-medium text-slate-100 drop-shadow-sm">{description}</p>
