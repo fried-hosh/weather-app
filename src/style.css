@@ -25,6 +25,12 @@ body {
   height: 100%;
 }
 
+html {
+  height: 100%;
+  /* 背景色を白くしないための色定義 */
+  background-color: #3b82f6;
+}
+
 body {
   margin: 0;
   font-family:
@@ -33,6 +39,9 @@ body {
     "Noto Sans JP",
     sans-serif;
   line-height: 1.6;
+
+  background-color: #3b82f6;
+  min-height: 100dvh;
 }
 
 /* ========================================
