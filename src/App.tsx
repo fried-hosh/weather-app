@@ -6,14 +6,14 @@ import AppFooter from "./components/AppFootre";
 function App() {
   return (
     // 全体の背景。青のグラデーション
-    <div className="flex flex-col bg-blue-500 text-white">
+    <div className="min-h-dvh flex flex-col bg-gradient-to-br from-sky-400/80 to-indigo-700/80 text-white">
       <main className="flex w-full flex-1 flex-col">
         {/* メディアクエリ */}
         <div
           className="
-          sm:mx-auto sm:max-w-3xl sm:px-4
-          lg:max-w-5xl lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-6
-          lg:rounded-3xl lg:border-2 lg:border-cyan-300 lg:p-5 lg:my-16 lg:shadow-2xl
+          sm:px-4
+          lg:mx-auto lg:max-w-5xl lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-6
+          lg:rounded-3xl lg:border-2 lg:border-cyan-300/50 lg:p-5 lg:my-16 lg:shadow-2xl
           lg:bg-gradient-to-r lg:from-sky-400/80 lg:to-indigo-700/80
           "
         >

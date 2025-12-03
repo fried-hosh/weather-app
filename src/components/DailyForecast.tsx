@@ -4,24 +4,30 @@ import AppFooter from "./AppFootre";
 type DailyItem = {
   day: string;
   iconUrl?: string;
-  temp: string;
+  temp: number;
   description?: string;
 };
 
+type DailyForecastProps = {
+  items?: DailyItem[];
+};
+
 const dummyDaily: DailyItem[] = [
-  { day: "Mon", temp: "26℃", description: "Partly Cloudy" },
-  { day: "Tue", temp: "24℃", description: "Showers" },
-  { day: "Wed", temp: "26℃", description: "Mostly Sunny" },
-  { day: "Thu", temp: "23℃", description: "Light Rain" },
-  { day: "Fri", temp: "28℃", description: "Sunny" },
-  { day: "Sat", temp: "26℃", description: "Partly Cloudy" },
-  { day: "Sun", temp: "22℃", description: "Rain Likely" },
+  { day: "Mon", temp: 26, description: "Partly Cloudy" },
+  { day: "Tue", temp: 24, description: "Showers" },
+  { day: "Wed", temp: 26, description: "Mostly Sunny" },
+  { day: "Thu", temp: 23, description: "Light Rain" },
+  { day: "Fri", temp: 28, description: "Sunny" },
+  { day: "Sat", temp: 26, description: "Partly Cloudy" },
+  { day: "Sun", temp: 22, description: "Rain Likely" },
 ];
 
-const DailyForecast = () => {
+const DailyForecast = ({ items }: DailyForecastProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const data = items && items.length > 0 ? items : dummyDaily;
 
   // シートを開閉する関数
   const toggleSheet = () => {
@@ -97,15 +103,15 @@ const DailyForecast = () => {
 
         ${isExpanded ? "translate-y-0" : "translate-y-[60dvh]"}
 
-        sm:static sm:h-auto sm:translate-y-0 sm:m-0 sm:rounded-3xl
-        lg:shadow-lg lg:backdrop-blur-md lg:bg-gradient-to-tl lg:from-blue-400 lg:to-blue-950 lg:mt-6
+        sm:static sm:h-auto sm:translate-y-0 sm:m-0 sm:rounded-3xl sm:bg-white/10 sm:shadow-lg
+        lg:shadow-lg lg:backdrop-blur-md lg:border-2 lg:border-white/10 lg:mt-6
     `}
     >
       {/* ハンドルバー */}
       <div onClick={toggleSheet} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="flex w-full flex-col items-center justify-center pb-2 pt-4 sm:cursor-auto">
         <div className="mt-1 h-1.5 w-12 rounded-full bg-slate-400 sm:hidden" />
 
-        <h2 id="daily-forecast-title" className="pt-2 pb-2 text-center text-lg font-bold text-slate-700 lg:text-slate-100">
+        <h2 id="daily-forecast-title" className="pt-2 pb-2 text-center text-lg font-bold text-slate-700 sm:text-slate-100">
           7日間の天気
         </h2>
       </div>
@@ -117,20 +123,28 @@ const DailyForecast = () => {
         id="daily-forecast-list"
         role="list"
         className="flex-1 overflow-y-auto px-6 pb-8 md:p-4 md:overflow-visible"
-        // スマホで閉じてる時はスクロールさせない（誤操作防止）
+        // スマホで閉じている間はスクロールさせない（誤操作防止）
         style={{ overflowY: isExpanded ? "auto" : "hidden" }}
       >
         <div className="flex flex-col md:gap-3 md:divide-y-0">
-          {dummyDaily.map((item) => (
-            <div key={item.day} className="flex items-center rounded-xl border border-blue-300 bg-slate-300 mb-1 px-4 py-2 shadow-md" role="listitem">
+          {data.map((item) => (
+            <div
+              key={item.day}
+              className="
+                flex items-center rounded-xl border border-white/30 bg-slate-300 mb-1 px-4 py-2 shadow-md
+                sm:bg-slate-200/50
+                sm:bg-gradient-to-br sm:from-white/40 sm:to-white/5
+                "
+              role="listitem"
+            >
               {/* 曜日 */}
-              <p className="w-12 font-semibold text-slate-700">{item.day}</p>
+              <p className="w-12 font-semibold text-slate-700 ">{item.day}</p>
               {/* 天気アイコン */}
               {item.iconUrl ? <img className="size-10 rounded-full" src={item.iconUrl} alt={item.description ?? ""} /> : <div className="size-10 rounded-full bg-slate-200" aria-hidden />}
               {/* 気温 */}
-              <p className="w-14 text-right text-slate-700">{item.temp}</p>
+              <p className="w-14 text-right text-slate-600">{item.temp}℃</p>
               {/* 説明 */}
-              <p className="flex-1 text-right text-sm text-slate-500">{item.description}</p>
+              <p className="flex-1 text-right text-sm text-slate-700">{item.description}</p>
             </div>
           ))}
         </div>
