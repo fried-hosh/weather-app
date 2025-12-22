@@ -44,3 +44,7 @@ test-results
 
 # メモ
 notes-local/
+
+# Chat / AI context pack (generated)
+context-pack.md
+context-pack-*.md
