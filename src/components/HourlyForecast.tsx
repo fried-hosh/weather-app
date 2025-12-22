@@ -1,35 +1,55 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import type { ForecastDay } from "../hooks/useWeather";
 
 type HourlyItem = {
   time: string;
   temp: number;
   iconUrl?: string;
-  description?: string;
+  description: string;
+  // Now判定用
+  fullTime: string;
+  // "00:00"の色変え
+  isMidnight: boolean;
 };
 
 type HourlyForecastProps = {
-  items?: HourlyItem[];
+  items: ForecastDay[];
+  currentHourKey: string;
 };
 
-const dummyHourly: HourlyItem[] = [
-  { time: "12:00", temp: 20, description: "くもり" },
-  { time: "13:00", temp: 21, description: "くもり時々晴れ" },
-  { time: "14:00", temp: 22, description: "晴れ" },
-  { time: "15:00", temp: 23, description: "晴れ" },
-  { time: "16:00", temp: 21, description: "くもり" },
-  { time: "17:00", temp: 19, description: "雨" },
-  { time: "18:00", temp: 18, description: "雨" },
-  { time: "19:00", temp: 17, description: "雨" },
-  { time: "20:00", temp: 16, description: "雨" },
-  { time: "21:00", temp: 15, description: "雨" },
-  { time: "22:00", temp: 14, description: "雨" },
-];
+const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
+  // 全日分のhourをフラットにする
+  const allHours = items.flatMap((day) => day.hour);
 
-const HourlyForecast = ({ items }: HourlyForecastProps) => {
+  const data: HourlyItem[] = allHours.map((h) => {
+    // h.time: "YYYY-MM-DD hh:mm"を文字列として分解する
+    const [datePart, timePart] = h.time.split(" ");
+    // "hh:mm"の部分のみを時間表記に利用
+    const timeLabel = timePart;
+    const isMidnight = timeLabel === "00:00";
+
+    // 0時だけ日付(M/D)にする
+    let displayLabel = timeLabel;
+    if (isMidnight) {
+      const [, m, d] = datePart.split("-");
+      displayLabel = `${Number(m)}/${Number(d)}`;
+    }
+
+    return {
+      time: displayLabel,
+      temp: Math.round(h.temp_c),
+      iconUrl: h.condition.icon,
+      description: h.condition.text,
+      fullTime: h.time,
+      isMidnight,
+    };
+  });
+
   // スクロール要素への参照を作成
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const data = items && items.length > 0 ? items : dummyHourly;
+  // Nowカードへの参照
+  const nowCardRef = useRef<HTMLDivElement>(null);
 
   // スクロール操作の関数
   const scroll = (direction: "left" | "right") => {
@@ -46,6 +66,36 @@ const HourlyForecast = ({ items }: HourlyForecastProps) => {
       }
     }
   };
+
+  // Nowカードまで自動スクロール
+  useEffect(() => {
+    // Hourlyのカード全体
+    const container = scrollRef.current;
+    // Nowカード
+    const nowCard = nowCardRef.current;
+    if (!container || !nowCard) return;
+
+    // リストの先頭(スクロール込みで左端のカード)からNowカードまでの距離px
+    const cardLeft = nowCard.offsetLeft;
+    // Nowカード自体の横幅px
+    const cardWidth = nowCard.offsetWidth;
+    // Hourlyリストの横幅px
+    const containerWidth = container.clientWidth;
+
+    // カードがおおよそ中央にくるようにスクロール位置を調整
+    // (containerWidth - cardWidth) / 2 ... カードをコンテナの真ん中に置いて二等分したときの片方の余白の長さ。
+    // cardLeft ... リストの先頭〜Nowカードまでの距離。ただこの距離自体は画面(コンテナ)の左端までの距離だから、Nowカードをコンテナの真ん中あたりにちゃんと置くために片方の余白の長さを引く。そうするとNowカードがコンテナの半分くらいの位置に表示される。(= 余白のpx分左側の地点がコンテナの左端になる)
+    const targetScrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
+
+    // スクロールバーを指定した位置pxまで移動させる。0は左端。
+    // ブラウザは「左端」しか見ることができないから、「左端に何を置くか」を指定する必要がある。
+    // scrollTo left:は「リストの何px地点を画面の左端にするか」を決めるメソッド。
+    container.scrollTo({
+      // Nowが0時(リストの左端)の場合、targetScrollLeftが負になってバグるから0を置いておく。
+      left: Math.max(targetScrollLeft, 0),
+      behavior: "smooth",
+    });
+  }, [items]);
 
   return (
     // 親にgroup、子にgroup-hover:⚪︎⚪︎で、「親がhoverされたときに子の見た目を変える」。
@@ -79,27 +129,29 @@ const HourlyForecast = ({ items }: HourlyForecastProps) => {
       {/* === 横スクロールリスト === */}
       {/* ref={scrollRef}でリストのDOMをuseRef.currentに保存して操作する */}
       <div ref={scrollRef} className="no-scrollbar flex w-full snap-x gap-3 overflow-x-auto scroll-smooth px-1 " role="list">
-        {/* ここにAPI入れる */}
-        {data.map((item, index) => (
-          <div
-            key={item.time}
-            role="listitem"
-            className={`flex min-w-[4.5rem] shrink-0 snap-start flex-col items-center justify-between gap-2 rounded-2xl border shadow-sm backdrop-blur transition-colors
-          ${
-            /* 「Now」など特定の要素を目立たせる場合の条件分岐例（今回はindex=0をハイライト） */
-            index === 0 ? "border-slate-200 bg-white/40 text-slate-600 lg:bg-blue-400/60" : "bg-white/10 text-slate-100"
-          } `}
-          >
-            {/* 時間 */}
-            <p className="pt-2 text-xs font-semibold lg:text-base">{item.time}</p>
+        {data.map((item) => {
+          // Now判定。fullTime(YYYY-MM-DD hh:mm)の先頭文字がcurrentHourKey(YYYY-MM-DD hh)と一致してるならNowと表示。
+          const isNow = item.fullTime.startsWith(currentHourKey);
 
-            {/* アイコン */}
-            {item.iconUrl ? <img className="size-8 " src={item.iconUrl} alt={item.description ?? ""} /> : <div className="size-8 rounded-full bg-slate-200/50 dark:bg-slate-600/50" aria-hidden />}
+          return (
+            <div
+              ref={isNow ? nowCardRef : undefined}
+              key={item.fullTime}
+              role="listitem"
+              className={`flex min-w-[4.5rem] shrink-0 snap-start flex-col items-center justify-between gap-2 rounded-2xl border shadow-sm backdrop-blur transition-colors
+          ${isNow ? "border-slate-200 bg-white/40 text-slate-600 lg:bg-blue-400/60" : "bg-white/10 text-slate-100"} `}
+            >
+              {/* 時間 */}
+              <p className={`pt-2 text-xs font-semibold lg:text-base ${item.isMidnight ? "text-slate-600" : ""}`}>{isNow ? "Now" : item.time}</p>
 
-            {/* 気温 */}
-            <p className="pb-2 text-sm font-bold lg:text-lg">{item.temp}℃</p>
-          </div>
-        ))}
+              {/* アイコン */}
+              {item.iconUrl ? <img className="size-8 " src={item.iconUrl} alt={item.description ?? ""} /> : <div className="size-8 rounded-full bg-slate-200/50 dark:bg-slate-600/50" aria-hidden />}
+
+              {/* 気温 */}
+              <p className="pb-2 text-sm font-bold lg:text-lg">{`${item.temp}℃`}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* === 右スクロールボタン === */}
