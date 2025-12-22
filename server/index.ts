@@ -1,20 +1,53 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // dist/server/index.js
 const clientDir = path.resolve(__dirname, ".."); // distを指す。tsにおける__dirnameはjsの位置を指すから、一個上はdist。
 
 const app = express();
-const port = 3000; // Viteとは別のポートで動かす
+const port = 3000;
 
-// 本番環境で使われる行。distの中の静的ファイルをExpressが配信するための設定
+const API_KEY = process.env.WEATHER_API_KEY;
+const BASE_URL = process.env.WEATHER_API_BASE_URL ?? "https://api.weatherapi.com/v1";
+
+if (!API_KEY) throw new Error("環境変数 WEATHER_API_KEY が設定されていません。");
+
+// リクエストされたファイルがdist内にあるかどうかをチェック。あれば渡して終了、なければ下の行を実行。
 app.use(express.static(clientDir));
 
-// テスト用のAPIエンドポイント
-// Expressに/api/testというhttpリクエストがきたらjsonデータを返す
-app.get("/api/test", (_req, res) => {
-  res.json({ ok: true, message: "Hello from Express server!" });
+// 天気情報を返すAPIエンドポイント
+
+app.get("/api/weather", async (req, res) => {
+  const queryCity = req.query.city;
+  const city = typeof queryCity === "string" ? queryCity : "Tokyo";
+  console.log("天気取得リクエスト city:", req.query.city);
+
+  try {
+    const url = `${BASE_URL}/forecast.json?key=${API_KEY}&q=${encodeURIComponent(city)}&days=7&aqi=no&alerts=no&lang=ja`;
+
+    const apiRes = await fetch(url);
+
+    if (!apiRes.ok) {
+      console.error("WeatherAPIがエラーを返しました。 status:", apiRes.status);
+      return res.status(apiRes.status).json({ error: "天気データの取得に失敗しました。" });
+    }
+
+    const data = await apiRes.json();
+    return res.json(data);
+  } catch (error) {
+    // サーバー側のエラーログ
+    if (error instanceof Error) {
+      console.error("ネットワークまたはサーバー内部のエラー:", error);
+    } else {
+      console.error("予期しない形式のエラー:", error);
+    }
+    // クライアントへ返す文言
+    res.status(500).json({ error: "サーバー内部でエラーが発生しました。" });
+  }
 });
 
 // ===== SPAフォールバック =====
