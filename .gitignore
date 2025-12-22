@@ -48,3 +48,4 @@ notes-local/
 # Chat / AI context pack (generated)
 context-pack.md
 context-pack-*.md
+tools/make_context_pack.py
