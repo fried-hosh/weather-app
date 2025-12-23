@@ -79,22 +79,56 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
     }
   }, [isExpanded]);
 
-  // シートが開いている間は、裏側のbodyスクロールを止める
+  // sm(640px)以上になったら強制的にシートを閉じる（横画面遷移でスクロール不可になるバグ対策）
   useEffect(() => {
-    if (!isExpanded) {
-      // 閉じているときは何もしない
-      return;
-    }
-    // 画面幅が640px以上(sm)なら何もしない
-    if (window.innerWidth >= 640) return;
+    const mediaQuery = window.matchMedia("(min-width: 640px)");
 
-    // リセット用のoverflow設定をコピーしておく
-    const originalOverflow = document.body.style.overflow;
-    // bodyのスクロールを無効化
-    document.body.style.overflow = "hidden";
-
-    // シートを閉じたとき・コンポーネントがアンマウントされたときに元に戻す
+    const handleChange = (e: MediaQueryListEvent) => {
+      // 640px以上になったら閉じる
+      if (e.matches) {
+        setIsExpanded(false);
+      }
+    };
+    // イベントリスナーを登録
+    mediaQuery.addEventListener("change", handleChange);
+    // クリーンアップ
     return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  // モバイル時にシートを開いた状態で横持ち（sm）にするとスクロール不能になるバグの解消
+  // シートが開いてる間は、sm未満ならbodyをロック、sm以上なら解除
+  useEffect(() => {
+    // シートが閉じている間は何もしない = 閉じている間は普段通りbodyスクロール可能
+    if (!isExpanded) return;
+
+    // 解除用に「元のbodyのoverflow設定」を保存しておく。他ライブラリの設定等で特別な設定がされている可能性があるため。
+    const originalOverflow = document.body.style.overflow;
+
+    // 「画面が今モバイル(639px以下)かどうか」の判定機オブジェクトを作成
+    // .matchesで「条件を満たしているか」を真偽値で返せる。
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+
+    // 現在の画面幅に応じてbodyのスクロールロックを判定する（初回用/再計算用）
+    // - sm未満（matches=true）: bodyスクロールを止める
+    // - sm以上（matches=false）: bodyスクロールを止めない（元のoverflowに戻す）
+    const apply = () => {
+      document.body.style.overflow = mediaQuery.matches ? "hidden" : originalOverflow;
+    };
+
+    // 画面幅がsmを跨いだときにのみ呼ばれるイベント
+    const handleChange = () => {
+      apply();
+    };
+    // useEffectが動いた瞬間（シートを開いたとき）にまずこれを実行してロックするかを判定
+    apply();
+
+    // 境界線を跨いだら更新
+    mediaQuery.addEventListener("change", handleChange);
+    // クリーンアップ
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
       document.body.style.overflow = originalOverflow;
     };
   }, [isExpanded]);
@@ -121,14 +155,14 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
       </div>
 
       {/* リスト（スクロール可能エリア） */}
-      {/* ここにAPI入れる */}
       <div
         ref={listRef}
         id="daily-forecast-list"
         role="list"
-        className="flex-1 overflow-y-auto px-6 pb-8 md:p-4 md:overflow-visible"
-        // スマホで閉じている間はスクロールさせない（誤操作防止）
-        style={{ overflowY: isExpanded ? "auto" : "hidden" }}
+        // シートを閉じている間はリスト内スクロールさせない（誤操作防止）
+        className={`flex-1 px-6 pb-8 md:p-4 sm:overflow-visible
+          ${isExpanded ? "overflow-y-auto" : "overflow-hidden"}
+          `}
       >
         <div className="flex flex-col md:gap-3 md:divide-y-0">
           {data.map((item) => (
