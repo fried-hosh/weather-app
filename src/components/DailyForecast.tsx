@@ -14,13 +14,20 @@ type DailyForecastProps = {
   items: ForecastDay[];
 };
 
-// Dateを渡すと、日本語で曜日を返すフォーマッタを作成("short"だと"日","月"...)。一応mapループから避難させる。
+/* ========================================
+   データ整形
+======================================== */
+
+// Dateを渡すと日本語で曜日を返すフォーマッタを作成("short"だと"日","月"...)
 const dayFormatter = new Intl.DateTimeFormat("ja-JP", { weekday: "short" });
 
 const DailyForecast = ({ items }: DailyForecastProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<number | null>(null);
+  // スワイプ成立直後、シートに互換clickが来た場合に、そのclickを1回だけ無視するためのフラグ
+  // UIと関係ない制御フラグのためrefで保持
+  const ignoreClickRef = useRef(false);
 
   const data: DailyItem[] = items.map((d) => {
     // ブラウザによっては日本時間がUTCに変換されて表示日時がずれる可能性があるため、T00:00:00を結合してDateに年月日+時間まで読ませる。
@@ -40,37 +47,61 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
     };
   });
 
-  // シートを開閉する関数
+  /* ========================================
+   イベント（クリック・スワイプで開閉）
+======================================== */
+
   const toggleSheet = () => {
-    setIsExpanded(!isExpanded);
+    // 直前にスワイプが成立して「次にclickを無視する」状態なら、そのclickは処理せず、フラグだけ戻して終わる。
+    // （スワイプとクリック同時発火によるシート反転事故防止）
+    if (ignoreClickRef.current) {
+      ignoreClickRef.current = false;
+      return;
+    }
+    // クリックで開閉を反転
+    setIsExpanded((prev) => !prev);
   };
 
   // タッチ開始
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientY);
+    // タッチ操作が始まった時点で無視フラグをリセット
+    ignoreClickRef.current = false;
+
+    touchStartRef.current = e.targetTouches[0].clientY;
   };
 
   // タッチ終了（スワイプ判定）
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
+    if (touchStartRef.current === null) return;
 
     const touchEnd = e.changedTouches[0].clientY;
-    const distance = touchStart - touchEnd;
+    const distance = touchStartRef.current - touchEnd;
     const threshold = 50; // スワイプとみなす距離(px)
 
     // 上にスワイプ（distance > 0）: 開く
     if (distance > threshold && !isExpanded) {
+      // このスワイプ操作の直後に互換clickが飛んできたら、それを1回無視したい
+      // スワイプ成功時にのみtrueにするため、
+      // タップはtouchStart(false)->End(変わらない)->click(false)の流れでクリック無効化されずに実行できる。
+      ignoreClickRef.current = true;
+
       setIsExpanded(true);
     }
 
     // 下にスワイプ（distaice < 0）: 閉じる
     else if (distance < -threshold && isExpanded) {
+      ignoreClickRef.current = true;
+
       setIsExpanded(false);
     }
 
     // 状態をリセット
-    setTouchStart(null);
+    touchStartRef.current = null;
   };
+
+  /* ========================================
+   副作用（スクロール・画面幅・bodyロック）
+======================================== */
 
   // シートが閉じたらリストのスクロールをリセットする
   useEffect(() => {
@@ -132,6 +163,10 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
       document.body.style.overflow = originalOverflow;
     };
   }, [isExpanded]);
+
+  /* ========================================
+   UI
+======================================== */
 
   return (
     <section
