@@ -17,6 +17,10 @@ type HourlyForecastProps = {
   currentHourKey: string;
 };
 
+/* ========================================
+   データ整形（全日分のhour -> 表示用のHourlyItem）
+======================================== */
+
 const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
   // 全日分のhourをフラットにする
   const allHours = items.flatMap((day) => day.hour);
@@ -45,11 +49,19 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
     };
   });
 
+  /* ========================================
+   参照（スクロール領域・Nowカード）
+======================================== */
+
   // スクロール要素への参照を作成
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Nowカードへの参照
   const nowCardRef = useRef<HTMLDivElement>(null);
+
+  /* ========================================
+   イベント（左右スクロールボタン）
+======================================== */
 
   // スクロール操作の関数
   const scroll = (direction: "left" | "right") => {
@@ -67,7 +79,10 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
     }
   };
 
-  // Nowカードまで自動スクロール
+  /* ========================================
+   副作用（Nowカードまで自動スクロール）
+======================================== */
+
   useEffect(() => {
     // Hourlyのカード全体
     const container = scrollRef.current;
@@ -84,7 +99,9 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
 
     // カードがおおよそ中央にくるようにスクロール位置を調整
     // (containerWidth - cardWidth) / 2 ... カードをコンテナの真ん中に置いて二等分したときの片方の余白の長さ。
-    // cardLeft ... リストの先頭〜Nowカードまでの距離。ただこの距離自体は画面(コンテナ)の左端までの距離だから、Nowカードをコンテナの真ん中あたりにちゃんと置くために片方の余白の長さを引く。そうするとNowカードがコンテナの半分くらいの位置に表示される。(= 余白のpx分左側の地点がコンテナの左端になる)
+    // cardLeft ... リストの先頭〜Nowカードまでの距離。ただこの距離自体は画面(コンテナ)の左端までの距離だから、
+    // Nowカードをコンテナの真ん中あたりにちゃんと置くために片方の余白の長さを引く。
+    // そうするとNowカードがコンテナの半分くらいの位置に表示される。(= 余白のpx分左側の地点がコンテナの左端になる)
     const targetScrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
 
     // スクロールバーを指定した位置pxまで移動させる。0は左端。
@@ -96,6 +113,10 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
       behavior: "smooth",
     });
   }, [items]);
+
+  /* ========================================
+   UI
+======================================== */
 
   return (
     // 親にgroup、子にgroup-hover:⚪︎⚪︎で、「親がhoverされたときに子の見た目を変える」。

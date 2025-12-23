@@ -7,11 +7,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 export const Dashboard = () => {
+  /* ========================================
+   状態・データ取得
+======================================== */
+
   const [activeCity, setActiveCity] = useState("東京");
   const [isSearching, setIsSearching] = useState(false);
   const { data, isLoading } = useWeather(activeCity);
 
   const queryClient = useQueryClient();
+
+  /* ========================================
+   イベント（都市検索）
+======================================== */
 
   const onSearch = async (city: string): Promise<boolean> => {
     const nextCity = city.trim();
@@ -44,6 +52,10 @@ export const Dashboard = () => {
     }
   };
 
+  /* ========================================
+     UI分岐（初回ロード・データなし時）
+  ======================================== */
+
   // 初回ロード中のみローディング表示
   if (isLoading && !data)
     return (
@@ -64,7 +76,10 @@ export const Dashboard = () => {
     );
   }
 
-  // データ整形
+  /* ========================================
+   データ整形（表示用の値に変換）
+======================================== */
+
   const current = data.current;
   const todayForecast = data.forecast.forecastday[0].day;
   const forecastDays = data.forecast.forecastday;
@@ -75,7 +90,10 @@ export const Dashboard = () => {
   // Hourlyに渡す用。現地時刻(localtime)を「その時間の00分」に丸めて、Hourlyの"Now"判定に使うキーを作る。
   const currentHourKey = makeCurrentHourKeyFromLocaltime(data.location.localtime);
 
-  // UI
+  /* ========================================
+   UI
+======================================== */
+
   return (
     // 全体の背景。青のグラデーション
     <div className="min-h-dvh flex flex-col bg-gradient-to-br from-sky-400/80 to-indigo-700/80 text-white">
@@ -119,6 +137,10 @@ export const Dashboard = () => {
     </div>
   );
 };
+
+/* ========================================
+   ユーティリティ
+======================================== */
 
 // "YYYY-MM-DD HH:MM" → "YYYY-MM-DD HH:00"
 // HourlyでNowを光らせる準備

@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
+/* ========================================
+   スキーマ・型定義
+======================================== */
+
 const WeatherSchema = z.object({
   //Current
   location: z.object({
@@ -51,6 +55,10 @@ export type WeatherApiResponse = z.infer<typeof WeatherSchema>;
 // Hourly / DailyForecast.tsx用
 export type ForecastDay = WeatherApiResponse["forecast"]["forecastday"][number];
 
+/* ========================================
+   データ取得
+======================================== */
+
 export const fetchWeather = async (city: string): Promise<WeatherApiResponse> => {
   try {
     const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
@@ -85,6 +93,10 @@ export const fetchWeather = async (city: string): Promise<WeatherApiResponse> =>
     throw new Error("予期しないエラーが発生しました。");
   }
 };
+
+/* ========================================
+   カスタムフック（TanStack Queryでキャッシュ付き取得）
+======================================== */
 
 export const useWeather = (city: string) => {
   return useQuery({

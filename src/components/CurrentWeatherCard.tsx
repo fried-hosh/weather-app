@@ -17,6 +17,10 @@ type CurrentWeatherCardProps = {
   isSearching: boolean;
 };
 
+/* ========================================
+   データ整形
+======================================== */
+
 const CurrentWeatherCard = ({ cityName, temp, description, iconUrl, maxTemp, minTemp, humidity, windSpeed, precipitation, localtime, onCitySubmit, isSearching = false }: CurrentWeatherCardProps) => {
   const displayTemp = `${Math.round(temp)}℃`;
   const displayMax = `${Math.round(maxTemp)}℃`;
@@ -25,8 +29,16 @@ const CurrentWeatherCard = ({ cityName, temp, description, iconUrl, maxTemp, min
   const displayWind = `${Math.round(windSpeed)}m/s`;
   const displayRain = `${precipitation}%`;
 
+  /* ========================================
+   状態
+======================================== */
+
   const [isEditing, setIsEditing] = useState(false);
   const [draftCity, setDraftCity] = useState(cityName);
+
+  /* ========================================
+   副作用（都市名の変更を入力欄に同期）
+======================================== */
 
   // 入力欄(draftCity)は自分でsetDraftCityしない限り変わらない。
   // 都市お気に入りボタン等で表示の都市名(cityName)だけ変わったとき、編集欄が古いdraftCityにならないようにcityNameに合わせて更新する。
@@ -49,6 +61,10 @@ const CurrentWeatherCard = ({ cityName, temp, description, iconUrl, maxTemp, min
 
   const displayDate = `${dateStr}(${weekStr})`;
 
+  /* ========================================
+   イベント（編集の送信・キャンセル）
+======================================== */
+
   // 編集内容(都市名)を送信
   const submitEdit = async () => {
     const next = draftCity;
@@ -64,6 +80,10 @@ const CurrentWeatherCard = ({ cityName, temp, description, iconUrl, maxTemp, min
     setDraftCity(cityName);
     setIsEditing(false);
   };
+
+  /* ========================================
+   UI
+======================================== */
 
   return (
     <section aria-labelledby="current-weather-title" className="rounded-3xl border-2 border-white/10 p-6 text-white shadow-lg backdrop-blur-md bg-white/10">
