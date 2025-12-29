@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type CurrentWeatherCardProps = {
   cityName: string;
@@ -39,12 +39,6 @@ const CurrentWeatherCard = ({ cityName, temp, description, iconUrl, maxTemp, min
   /* ========================================
    副作用（都市名の変更を入力欄に同期）
 ======================================== */
-
-  // 入力欄(draftCity)は自分でsetDraftCityしない限り変わらない。
-  // 都市お気に入りボタン等で表示の都市名(cityName)だけ変わったとき、編集欄が古いdraftCityにならないようにcityNameに合わせて更新する。
-  useEffect(() => {
-    setDraftCity(cityName);
-  }, [cityName]);
 
   // 日付の整形: "YYYY-MM-DD HH:mm" -> ⚪︎⚪︎月××日(金曜日)
   // 安定表示用に日付と時間の区切りをTに置換

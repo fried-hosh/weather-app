@@ -110,6 +110,8 @@ export const Dashboard = () => {
           {/* ===== 上部エリア(現在の天気 + 時間予報) ===== */}
           <div className="flex flex-col gap-6 p-4 pt-6 pb-8 ">
             <CurrentWeatherCard
+              // key= 都市が切り替わったらカードをリマウントして、編集状態(draftCity)をリセット
+              key={activeCity}
               cityName={data.location.name}
               temp={current.temp_c}
               description={current.condition.text}
