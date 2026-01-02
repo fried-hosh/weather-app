@@ -8,7 +8,7 @@ type HourlyItem = {
   description: string;
   // Now判定用
   fullTime: string;
-  // "00:00"の色変え
+  // "00:00"の表記変更
   isMidnight: boolean;
 };
 
@@ -26,13 +26,12 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
   const allHours = items.flatMap((day) => day.hour);
 
   const data: HourlyItem[] = allHours.map((h) => {
-    // h.time: "YYYY-MM-DD hh:mm"を文字列として分解する
+    // h.time: "YYYY-MM-DD hh:mm"を分解
     const [datePart, timePart] = h.time.split(" ");
-    // "hh:mm"の部分のみを時間表記に利用
     const timeLabel = timePart;
     const isMidnight = timeLabel === "00:00";
 
-    // 0時だけ日付(M/D)にする
+    // 0時だけ日付(M/D)と表記する
     let displayLabel = timeLabel;
     if (isMidnight) {
       const [, m, d] = datePart.split("-");
@@ -63,7 +62,7 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
    イベント（左右スクロールボタン）
 ======================================== */
 
-  // スクロール操作の関数
+  // スクロール操作
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { current } = scrollRef;
@@ -101,7 +100,7 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
     // (containerWidth - cardWidth) / 2 ... カードをコンテナの真ん中に置いて二等分したときの片方の余白の長さ。
     // cardLeft ... リストの先頭〜Nowカードまでの距離。ただこの距離自体は画面(コンテナ)の左端までの距離だから、
     // Nowカードをコンテナの真ん中あたりにちゃんと置くために片方の余白の長さを引く。
-    // そうするとNowカードがコンテナの半分くらいの位置に表示される。(= 余白のpx分左側の地点がコンテナの左端になる)
+    // 結果、Nowカードがコンテナの半分くらいの位置に表示される。(= 余白のpx分左側の地点がコンテナの左端になる)
     const targetScrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
 
     // スクロールバーを指定した位置pxまで移動させる。0は左端。
@@ -148,7 +147,6 @@ const HourlyForecast = ({ items, currentHourKey }: HourlyForecastProps) => {
       </button>
 
       {/* === 横スクロールリスト === */}
-      {/* ref={scrollRef}でリストのDOMをuseRef.currentに保存して操作する */}
       <div ref={scrollRef} className="no-scrollbar flex w-full snap-x gap-3 overflow-x-auto scroll-smooth px-1 " role="list">
         {data.map((item) => {
           // Now判定。fullTime(YYYY-MM-DD hh:mm)の先頭文字がcurrentHourKey(YYYY-MM-DD hh)と一致してるならNowと表示。

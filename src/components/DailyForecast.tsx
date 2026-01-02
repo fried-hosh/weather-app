@@ -30,7 +30,9 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
   const ignoreClickRef = useRef(false);
 
   const data: DailyItem[] = items.map((d) => {
-    // ブラウザによっては日本時間がUTCに変換されて表示日時がずれる可能性があるため、T00:00:00を結合してDateに年月日+時間まで読ませる。
+    // new Date("YYYY-MM-DD")はUTCの0時に変換される。
+    // その結果、UTC-の地域(アメリカ等)の端末では、検索都市が常に前日と表示されてしまう。
+    // 解決策: 後ろに "T00:00:00"(時刻) をつけると、「その端末における0時」として解釈されるため、ズレが発生しない。
     const forecastDate = new Date(`${d.date}T00:00:00`);
     // forecastDateの日時を見て、その日の西暦上の曜日を返す。
     const weekday = dayFormatter.format(forecastDate);
@@ -52,13 +54,13 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
 ======================================== */
 
   const toggleSheet = () => {
+    // スワイプとクリック同時発火によるシート反転事故防止
     // 直前にスワイプが成立して「次にclickを無視する」状態なら、そのclickは処理せず、フラグだけ戻して終わる。
-    // （スワイプとクリック同時発火によるシート反転事故防止）
     if (ignoreClickRef.current) {
       ignoreClickRef.current = false;
       return;
     }
-    // クリックで開閉を反転
+
     setIsExpanded((prev) => !prev);
   };
 
