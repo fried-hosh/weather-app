@@ -14,7 +14,15 @@ const port = Number(process.env.PORT) || 3000;
 const API_KEY = process.env.WEATHER_API_KEY;
 const BASE_URL = process.env.WEATHER_API_BASE_URL ?? "https://api.weatherapi.com/v1";
 
-if (!API_KEY) throw new Error("環境変数 WEATHER_API_KEY が設定されていません。");
+// エラーを投げずにRenderの起動処理は継続
+if (!API_KEY) {
+  console.warn("環境変数 WEATHER_API_KEY が設定されていません。RenderのEnvironment Variablesもしくは.envを確認してください。");
+}
+
+// サーバーが生きているかをRenderが起動時に確認する用のヘルスチェック
+app.get("/healthz", (req, res) => {
+  res.status(200).send("ok");
+});
 
 // リクエストされたファイルがdist内にあるかどうかをチェック。あれば渡して終了、なければ下の行を実行。
 app.use(express.static(clientDir));
@@ -25,6 +33,10 @@ app.get("/api/weather", async (req, res) => {
   const queryCity = req.query.city;
   const city = typeof queryCity === "string" ? queryCity : "Tokyo";
   console.log("天気取得リクエスト city:", req.query.city);
+
+  if (!API_KEY) {
+    return res.status(500).json({ error: "internal error" });
+  }
 
   try {
     const url = `${BASE_URL}/forecast.json?key=${API_KEY}&q=${encodeURIComponent(city)}&days=7&aqi=no&alerts=no&lang=ja`;
@@ -73,6 +85,6 @@ app.use((req, res, next) => {
   res.sendFile(path.join(clientDir, "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`[server]: listening on 0.0.0.0:${port}`);
 });
