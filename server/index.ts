@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url)); // dist/server/i
 const clientDir = path.resolve(__dirname, ".."); // distを指す。tsにおける__dirnameはjsの位置を指すから、一個上はdist。
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
 const API_KEY = process.env.WEATHER_API_KEY;
 const BASE_URL = process.env.WEATHER_API_BASE_URL ?? "https://api.weatherapi.com/v1";

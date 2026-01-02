@@ -15,7 +15,8 @@
     "test": "vitest",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
-    "pack": "python3 tools/make_context_pack.py"
+    "pack": "python3 tools/make_context_pack.py",
+    "start": "node dist/server/index.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
