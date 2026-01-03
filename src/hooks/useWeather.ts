@@ -59,9 +59,9 @@ export type ForecastDay = WeatherApiResponse["forecast"]["forecastday"][number];
    データ取得
 ======================================== */
 
-export const fetchWeather = async (city: string): Promise<WeatherApiResponse> => {
+export const fetchWeather = async (city: string, signal?: AbortSignal): Promise<WeatherApiResponse> => {
   try {
-    const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+    const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`, { signal });
 
     if (!res.ok) {
       if (res.status === 400 || res.status === 404) {
@@ -101,7 +101,7 @@ export const fetchWeather = async (city: string): Promise<WeatherApiResponse> =>
 export const useWeather = (city: string) => {
   return useQuery({
     queryKey: ["weather", city],
-    queryFn: () => fetchWeather(city),
+    queryFn: ({ signal }) => fetchWeather(city, signal),
     // 別タブから戻ってきたときにデータを再取得するかどうか
     refetchOnWindowFocus: false,
   });

@@ -34,7 +34,7 @@ export const Dashboard = () => {
       // ここで取得したデータは自動的にキャッシュされる。
       await queryClient.fetchQuery({
         queryKey: ["weather", nextCity],
-        queryFn: () => fetchWeather(nextCity),
+        queryFn: ({ signal }) => fetchWeather(nextCity, signal),
       });
       // 成功したときだけ画面表示を切り替える。(悲観的更新)
       // フェッチ成功 → 画面切り替え の順にすることでエラー時のUI保持が楽になる。
