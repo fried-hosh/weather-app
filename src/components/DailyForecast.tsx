@@ -139,29 +139,25 @@ const DailyForecast = ({ items }: DailyForecastProps) => {
     // 解除用に「元のbodyのoverflow設定」を保存しておく。他ライブラリの設定等で特別な設定がされている可能性があるため。
     const originalOverflow = document.body.style.overflow;
 
-    // 「画面が今モバイル(639px以下)かどうか」の判定機オブジェクトを作成
+    // 「画面が今モバイル(639px以下)かどうか」を判定するオブジェクト
     // .matchesで「条件を満たしているか」を真偽値で返せる。
     const mediaQuery = window.matchMedia("(max-width: 639px)");
 
-    // 現在の画面幅に応じてbodyのスクロールロックを判定する（初回用/再計算用）
+    // 現在の画面幅に応じてbodyのスクロールロックを判定する
     // - sm未満（matches=true）: bodyスクロールを止める
     // - sm以上（matches=false）: bodyスクロールを止めない（元のoverflowに戻す）
     const apply = () => {
       document.body.style.overflow = mediaQuery.matches ? "hidden" : originalOverflow;
     };
 
-    // 画面幅がsmを跨いだときにのみ呼ばれるイベント
-    const handleChange = () => {
-      apply();
-    };
-    // useEffectが動いた瞬間（シートを開いたとき）にまずこれを実行してロックするかを判定
+    // 初回（シートを開いたとき）にまず実行してロックするかを判定
     apply();
 
-    // 境界線を跨いだら更新
-    mediaQuery.addEventListener("change", handleChange);
+    // 境界線を跨いだら再判定
+    mediaQuery.addEventListener("change", apply);
     // クリーンアップ
     return () => {
-      mediaQuery.removeEventListener("change", handleChange);
+      mediaQuery.removeEventListener("change", apply);
       document.body.style.overflow = originalOverflow;
     };
   }, [isExpanded]);
